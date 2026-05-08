@@ -13,8 +13,8 @@ Custom Docker image for running R-based DNA methylation analysis on Azure Databr
 |---|---|
 | Base image | `databricksruntime/rbase:17.3-LTS` |
 | OS | Ubuntu 24.04 (noble) |
-| R | 4.4.2 |
-| Bioconductor | 3.20 |
+| R | 4.5.3 |
+| Bioconductor | 3.22 |
 | CRAN snapshot | Posit Package Manager (`__linux__/noble/latest`) |
 
 R packages installed:
@@ -57,19 +57,6 @@ A workspace admin must enable Databricks Container Services. Via the Databricks 
 ```bash
 databricks workspace-conf set-status --json '{"enableDcs": "true"}'
 ```
-
-### Creating a cluster
-
-1. **Compute → Create compute**
-2. **Databricks Runtime Version**: `17.3 LTS` (must match the image's runtime)
-3. **Node type**: at least 28 GB RAM (e.g. `Standard_DS4_v2`); methylation objects are memory-hungry
-4. **Advanced options → Docker tab**
-5. Check **Use your own Docker container**
-6. **Docker Image URL**: `thardianto/r-methylation:17.3-LTS`
-7. **Authentication**: Default (the Docker Hub repo is public)
-8. Create
-
-First cluster start pulls the image (~5–10 min). Subsequent starts on the same node pool are faster because Azure caches images per pool.
 
 ### Verifying it worked
 
