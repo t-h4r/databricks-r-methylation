@@ -20,7 +20,7 @@ RUN printf '%s\n' \
 
 # Install BiocManager, then minfi + wateRmelon.
 RUN R -e "install.packages('BiocManager')" \
- && R -e "BiocManager::install(version = '3.20', ask = FALSE, update = FALSE)" \
+ && R -e "BiocManager::install(version = '3.22', ask = FALSE, update = FALSE)" \
  && R -e "BiocManager::install(c( \
         'minfi', \
         'wateRmelon', \
