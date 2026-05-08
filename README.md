@@ -1,6 +1,6 @@
 # databricks-r-methylation
 
-Custom Docker image for running R-based DNA methylation analysis on Azure Databricks. Built on top of `databricksruntime/rbase:17.3-LTS` with [minfi](https://bioconductor.org/packages/minfi/), [wateRmelon](https://bioconductor.org/packages/wateRmelon/), [methylclock](https://bioconductor.org/packages/methylclock/), and EPIC v1/v2 annotation packages baked in, so clusters don't reinstall them on restart.
+Custom Docker image for running R-based DNA methylation analysis on Azure Databricks. Built on top of `databricksruntime/rbase:17.3-LTS` with [minfi](https://bioconductor.org/packages/minfi/), [wateRmelon](https://bioconductor.org/packages/wateRmelon/), and EPIC v1/v2 annotation packages baked in, so clusters don't reinstall them on restart.
 
 ## Links
 
@@ -21,7 +21,6 @@ R packages installed:
 
 - `minfi` — methylation array preprocessing and QC
 - `wateRmelon` — alternative normalization (BMIQ, dasen) and Horvath age estimation
-- `methylclock` — wrappers for Horvath, Hannum, PhenoAge, GrimAge, and gestational clocks
 - `IlluminaHumanMethylationEPICanno.ilm10b4.hg19` — EPIC v1 probe annotation
 - `IlluminaHumanMethylationEPICv2anno.20a1.hg38` — EPIC v2 probe annotation
 
@@ -65,7 +64,6 @@ Attach an R notebook and run:
 ```r
 library(minfi)
 library(wateRmelon)
-library(methylclock)
 library(IlluminaHumanMethylationEPICv2anno.20a1.hg38)
 sessionInfo()
 ```
