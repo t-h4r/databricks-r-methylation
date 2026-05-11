@@ -3,6 +3,23 @@ FROM databricksruntime/rbase:17.3-LTS
 
 USER root
 
+RUN set -eux; \
+    for candidate in \
+        /databricks/python3/bin/pip \
+        /databricks/python/bin/pip \
+        /databricks/python_shell/bin/pip \
+        /usr/bin/pip3 \
+        /usr/bin/pip; do \
+      if [ -x "$candidate" ]; then PIP="$candidate"; break; fi; \
+    done; \
+    if [ -z "${PIP:-}" ]; then \
+      echo "ERROR: no pip found. /databricks contents:"; \
+      ls -laR /databricks/ | head -200; \
+      exit 1; \
+    fi; \
+    echo "Using $PIP"; \
+    "$PIP" install --no-cache-dir --break-system-packages traitlets ipykernel
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
       libxml2-dev libssl-dev libcurl4-openssl-dev \
       libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev \
