@@ -4,27 +4,6 @@ FROM databricksruntime/rbase:17.3-LTS
 
 USER root
 
-# --- Python REPL + SQL display() deps ---
-RUN set -eux; \
-    PIP=/databricks/python3/bin/pip; \
-    if [ ! -x "$PIP" ]; then \
-      echo "ERROR: $PIP not found. /databricks contents:"; \
-      ls -laR /databricks/ | head -200; \
-      exit 1; \
-    fi; \
-    "$PIP" install --no-cache-dir \
-        ipython==8.30.0 \
-        ipykernel==6.29.5 \
-        traitlets==5.14.3 \
-        six==1.16.0 \
-        numpy==2.1.3 \
-        pandas==2.2.3 \
-        pyarrow==19.0.1 \
-        grpcio==1.67.0 \
-        protobuf==5.29.4
-
-RUN /databricks/python3/bin/python -c "import IPython, ipykernel, traitlets, six, numpy, pandas, pyarrow, grpc, google.protobuf; print('REPL deps OK')"
-
 # --- System libs (used by both Rserve and Bioconductor builds) ---
 RUN apt-get update && apt-get install -y --no-install-recommends \
       libxml2-dev libssl-dev libcurl4-openssl-dev \
@@ -32,7 +11,28 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       libpng-dev libtiff-dev libjpeg-dev libcairo2-dev libxt-dev \
       libgsl-dev libnetcdf-dev \
       zlib1g-dev libbz2-dev liblzma-dev \
+      libpq-dev \
  && rm -rf /var/lib/apt/lists/*
+
+# --- Python REPL + SQL display() deps ---
+# --- Mirror DBR 17.3-LTS Python env so /databricks/python_shell/lib/dbruntime
+#     imports resolve. pyspark is excluded — it's injected at cluster launch
+#     and pinning it here would shadow the cluster's version.
+COPY dbr-17.3-lts-requirements.txt /tmp/dbr-17.3-lts-requirements.txt
+RUN set -eux; \
+    PIP=/databricks/python3/bin/pip; \
+    if [ ! -x "$PIP" ]; then \
+      echo "ERROR: $PIP not found. /databricks contents:"; \
+      ls -laR /databricks/ | head -200; \
+      exit 1; \
+    fi; \
+    "$PIP" install --no-cache-dir -r /tmp/dbr-17.3-lts-requirements.txt
+
+RUN /databricks/python3/bin/python -c "\
+import IPython, ipykernel, traitlets, six, typing_extensions, setuptools, \
+       distutils.version, numpy, pandas, pyarrow, grpc, grpc_status, \
+       google.protobuf, requests; \
+print('REPL deps OK')"
 
 RUN set -eux; \
     mkdir -p /databricks/r/override-lib; \
@@ -64,6 +64,16 @@ stopifnot(all(sapply(c(
   "minfi", "wateRmelon"
 ), requireNamespace, quietly = TRUE)))
 EOF
+
+# --- R packages for SQL + data wrangling from R cells ---
+RUN R --no-save -e '\
+    options(repos = c(CRAN = "https://packagemanager.posit.co/cran/__linux__/noble/latest")); \
+    install.packages(c("sparklyr", "dplyr", "tidyr")); \
+    for (p in c("sparklyr", "dplyr", "tidyr")) { \
+      v <- packageVersion(p); \
+      cat(sprintf("%-10s %s\n", p, as.character(v))); \
+      stopifnot(requireNamespace(p, quietly = TRUE)) \
+    }'
 
 # --- Verify the override is what gets loaded ---
 RUN R --no-save -e '\
