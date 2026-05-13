@@ -58,10 +58,12 @@ options(
 install.packages("BiocManager")
 BiocManager::install(version = "3.22", ask = FALSE, update = FALSE)
 BiocManager::install(c(
-  "minfi", "wateRmelon"
+  "minfi", "wateRmelon", "IlluminaHumanMethylationEPICanno.ilm10b4.hg19",
+  "IlluminaHumanMethylationEPICv2anno.20a1.hg38"
 ), ask = FALSE, update = FALSE)
 stopifnot(all(sapply(c(
-  "minfi", "wateRmelon"
+  "minfi", "wateRmelon", "IlluminaHumanMethylationEPICanno.ilm10b4.hg19",
+  "IlluminaHumanMethylationEPICv2anno.20a1.hg38"
 ), requireNamespace, quietly = TRUE)))
 EOF
 
