@@ -58,11 +58,17 @@ options(
 install.packages("BiocManager")
 BiocManager::install(version = "3.22", ask = FALSE, update = FALSE)
 BiocManager::install(c(
-  "minfi", "wateRmelon", "IlluminaHumanMethylationEPICanno.ilm10b4.hg19",
+  "minfi", "wateRmelon",
+  "sesame", "methylclock", "EpiDISH",
+  "DMRcate", "missMethyl", "limma",
+  "IlluminaHumanMethylationEPICanno.ilm10b4.hg19",
   "IlluminaHumanMethylationEPICv2anno.20a1.hg38"
 ), ask = FALSE, update = FALSE)
 stopifnot(all(sapply(c(
-  "minfi", "wateRmelon", "IlluminaHumanMethylationEPICanno.ilm10b4.hg19",
+  "minfi", "wateRmelon",
+  "sesame", "methylclock", "EpiDISH",
+  "DMRcate", "missMethyl", "limma",
+  "IlluminaHumanMethylationEPICanno.ilm10b4.hg19",
   "IlluminaHumanMethylationEPICv2anno.20a1.hg38"
 ), requireNamespace, quietly = TRUE)))
 EOF
@@ -70,8 +76,8 @@ EOF
 # --- R packages for SQL + data wrangling from R cells ---
 RUN R --no-save -e '\
     options(repos = c(CRAN = "https://packagemanager.posit.co/cran/__linux__/noble/latest")); \
-    install.packages(c("sparklyr", "dplyr", "tidyr")); \
-    for (p in c("sparklyr", "dplyr", "tidyr")) { \
+    install.packages(c("sparklyr", "tidyverse")); \
+    for (p in c("sparklyr", "tidyverse")) { \
       v <- packageVersion(p); \
       cat(sprintf("%-10s %s\n", p, as.character(v))); \
       stopifnot(requireNamespace(p, quietly = TRUE)) \

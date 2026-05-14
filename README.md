@@ -22,14 +22,28 @@ Custom Docker image for running R-based DNA methylation analysis on Azure Databr
 
 R packages installed:
 
-- `minfi` — methylation array preprocessing and QC
-- `wateRmelon` — alternative normalization (BMIQ, dasen) and Horvath age estimation
-- `IlluminaHumanMethylationEPICanno.ilm10b4.hg19` — EPIC v1 probe annotation
-- `IlluminaHumanMethylationEPICv2anno.20a1.hg38` — EPIC v2 probe annotation
-- `sparklyr` — dplyr-style interface to Spark for SQL from R
-- `dplyr`, `tidyr` — data wrangling
+**Methylation analysis (Bioconductor):**
 
-Plus the full Bioconductor dependency tree these pull in (Biostrings, GenomicRanges, limma, bumphunter, etc.).
+- `minfi` — methylation array preprocessing and QC
+- `sesame` — alternative preprocessing pipeline with native EPIC v2 support
+- `wateRmelon` — alternative normalization (BMIQ, dasen) and Horvath age estimation
+- `methylclock` — DNA methylation age calculators (Horvath, Hannum, PhenoAge, etc.)
+- `EpiDISH` — cell-type deconvolution from methylation data
+- `DMRcate` — differentially methylated region detection
+- `missMethyl` — differential methylation testing and gene-set enrichment (note: camelCase, `library(missmethyl)` will fail)
+- `limma` — linear models for microarray analysis (also a transitive dep of several of the above)
+
+**Probe annotation:**
+
+- `IlluminaHumanMethylationEPICanno.ilm10b4.hg19` — EPIC v1
+- `IlluminaHumanMethylationEPICv2anno.20a1.hg38` — EPIC v2
+
+**Spark and data wrangling (CRAN):**
+
+- `sparklyr` — dplyr-style interface to Spark for SQL from R
+- `tidyverse` — `dplyr`, `tidyr`, `ggplot2`, `readr`, `purrr`, `stringr`, `forcats`, `tibble`, `lubridate`
+
+Plus the full Bioconductor dependency tree these pull in (Biostrings, GenomicRanges, GenomicFeatures, bumphunter, etc.).
 
 ## Why this exists
 
@@ -77,8 +91,6 @@ Attach a notebook and run these in separate cells:
 # R — Bioconductor stack loads
 library(minfi)
 library(wateRmelon)
-library(IlluminaHumanMethylationEPICanno.ilm10b4.hg19)
-library(IlluminaHumanMethylationEPICv2anno.20a1.hg38)
 sessionInfo()
 ```
 
