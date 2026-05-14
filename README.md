@@ -88,9 +88,12 @@ When you tick "Use your own Docker container" in the cluster create UI, **make s
 Attach a notebook and run these in separate cells:
 
 ```r
-# R — Bioconductor stack loads
-library(minfi)
-library(wateRmelon)
+# R — Bioconductor methylation stack loads
+pkgs <- c("minfi", "sesame", "wateRmelon", "methylclock", "EpiDISH",
+          "DMRcate", "missMethyl", "limma",
+          "IlluminaHumanMethylationEPICanno.ilm10b4.hg19",
+          "IlluminaHumanMethylationEPICv2anno.20a1.hg38")
+for (p in pkgs) library(p, character.only = TRUE)
 sessionInfo()
 ```
 
@@ -179,6 +182,10 @@ When DBR releases a new LTS, the Python env table in the [release notes](https:/
 **Cluster starts but R can't find packages.** Run `.libPaths()` in a notebook and check where R is looking. Then `%sh ls /usr/lib/R/site-library` and `%sh ls /databricks/r/override-lib` to see where the build installed them. If they don't match, set `R_LIBS_SITE` as a cluster environment variable pointing at the install path.
 
 **"Image pull failed" on cluster start.** Image name typo, or the Docker Hub repo went private without updating cluster credentials.
+
+**Build fails with "dependencies ... are not available for package 'methylclock'".** methylclock declares `devtools`, `tidyverse`, and `ggpubr` in its `Depends` — all CRAN, not Bioc. The Dockerfile must install CRAN packages *before* the Bioconductor install step; if the order is reversed, BiocManager can't satisfy methylclock's deps and silently skips the install. Same pattern for any Bioc package that depends on CRAN-only packages.
+
+**Build fails with "dependency 'Gviz' is not available for package 'DMRcate'".** Gviz is a Bioc package that DMRcate pulls transitively. BiocManager occasionally swallows install errors for transitive deps into its warnings bucket. List Gviz (or any other failing transitive Bioc dep) explicitly in the top-level `BiocManager::install(...)` call so the real error surfaces.
 
 **Build fails on Docker Hub with OOM.** Bioconductor source builds are heavy. The Dockerfile caps R's parallel compilation to keep memory bounded; if you've changed that, lower `options(Ncpus = ...)` in the Dockerfile.
 

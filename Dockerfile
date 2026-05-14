@@ -48,8 +48,22 @@ RUN set -eux; \
       '.libPaths(c("/databricks/r/override-lib", .libPaths()))' \
       >> /etc/R/Rprofile.site
 
+RUN R --no-save <<'RSCRIPT'
+options(
+  Ncpus = max(1L, parallel::detectCores() - 1L),
+  repos = c(CRAN = "https://packagemanager.posit.co/cran/__linux__/noble/latest")
+)
+install.packages("pak")
+pkgs <- c("sparklyr", "tidyverse", "devtools", "ggpubr")
+pak::pkg_install(pkgs, ask = FALSE)
+for (p in pkgs) {
+  stopifnot(requireNamespace(p, quietly = TRUE))
+  cat(sprintf("%-12s %s\n", p, as.character(packageVersion(p))))
+}
+RSCRIPT
+
 # --- Bioconductor 3.22 (matches R 4.5) ---
-RUN R --no-save <<'EOF'
+RUN R --no-save <<'RSCRIPT'
 options(
   Ncpus = max(1L, parallel::detectCores() - 1L),
   repos = c(CRAN = "https://packagemanager.posit.co/cran/__linux__/noble/latest"),
@@ -57,31 +71,17 @@ options(
 )
 install.packages("BiocManager")
 BiocManager::install(version = "3.22", ask = FALSE, update = FALSE)
-BiocManager::install(c(
+bioc_pkgs <- c(
   "minfi", "wateRmelon",
   "sesame", "methylclock", "EpiDISH",
-  "DMRcate", "missMethyl", "limma",
+  "DMRcate", "Gviz",
+  "missMethyl", "limma",
   "IlluminaHumanMethylationEPICanno.ilm10b4.hg19",
   "IlluminaHumanMethylationEPICv2anno.20a1.hg38"
-), ask = FALSE, update = FALSE)
-stopifnot(all(sapply(c(
-  "minfi", "wateRmelon",
-  "sesame", "methylclock", "EpiDISH",
-  "DMRcate", "missMethyl", "limma",
-  "IlluminaHumanMethylationEPICanno.ilm10b4.hg19",
-  "IlluminaHumanMethylationEPICv2anno.20a1.hg38"
-), requireNamespace, quietly = TRUE)))
-EOF
-
-# --- R packages for SQL + data wrangling from R cells ---
-RUN R --no-save -e '\
-    options(repos = c(CRAN = "https://packagemanager.posit.co/cran/__linux__/noble/latest")); \
-    install.packages(c("sparklyr", "tidyverse")); \
-    for (p in c("sparklyr", "tidyverse")) { \
-      v <- packageVersion(p); \
-      cat(sprintf("%-10s %s\n", p, as.character(v))); \
-      stopifnot(requireNamespace(p, quietly = TRUE)) \
-    }'
+)
+pak::pkg_install(paste0("bioc::", bioc_pkgs), ask = FALSE)
+stopifnot(all(sapply(bioc_pkgs, requireNamespace, quietly = TRUE)))
+RSCRIPT
 
 # --- Verify the override is what gets loaded ---
 RUN R --no-save -e '\
