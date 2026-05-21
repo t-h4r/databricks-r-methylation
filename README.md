@@ -13,9 +13,9 @@ Custom Docker image for running R-based DNA methylation analysis on Azure Databr
 |---|---|---|
 | Base image | `databricksruntime/rbase:17.3-LTS` | |
 | OS | Ubuntu 24.04 (noble) | |
-| R | 4.5.3 | apt-installed from noble; newer than DBR runtime's documented 4.4.2 |
-| Bioconductor | 3.22 | matches R 4.5 |
-| Rserve override | ≥ 1.8-16 | installed to `/databricks/r/override-lib` and prepended via `Rprofile.site` — DBR's bundled 1.8-15 is incompatible with R 4.5's strict `R_getVarEx` check |
+| R | 4.6 | apt-installed from noble; newer than DBR runtime's documented 4.4.2 |
+| Bioconductor | 3.23 | matches R 4.6 |
+| Rserve override | ≥ 1.8-16 | installed to `/databricks/r/override-lib` and prepended via `Rprofile.site` — DBR's bundled 1.8-15 is incompatible with R 4.5+'s strict `R_getVarEx` check |
 | Python | 3.12.3 | from the rbase base image |
 | Python deps | DBR 17.3-LTS env (`dbr-17.3-lts-requirements.txt`) | full mirror of the runtime's Python env so `/databricks/python_shell/lib/dbruntime/*` imports resolve |
 | CRAN snapshot | Posit Package Manager (`__linux__/noble/latest`) | |
@@ -39,11 +39,12 @@ R packages installed:
 - `IlluminaHumanMethylationEPICv2anno.20a1.hg38` — EPIC v2
 
 **Spark and data wrangling (CRAN):**
-
+ 
 - `sparklyr` — dplyr-style interface to Spark for SQL from R
 - `tidyverse` — `dplyr`, `tidyr`, `ggplot2`, `readr`, `purrr`, `stringr`, `forcats`, `tibble`, `lubridate`
+- `devtools`, `ggpubr` — installed explicitly because methylclock declares them in `Depends`; see Troubleshooting for why the order matters
 
-Plus the full Bioconductor dependency tree these pull in (Biostrings, GenomicRanges, GenomicFeatures, bumphunter, etc.).
+Plus the full Bioconductor dependency tree these pull in (Biostrings, GenomicRanges, GenomicFeatures, bumphunter, Gviz, etc.).
 
 ## Why this exists
 
@@ -72,7 +73,7 @@ This repo uses GitHub Actions to build the image on pushes to main (when `Docker
 
 To change what's installed:
 
-- **R / Bioconductor packages** — edit the `install.packages(...)` and `BiocManager::install(...)` calls in the Dockerfile
+- **R / Bioconductor packages** — edit the `pak::pkg_install(...)` calls in the Dockerfile (CRAN names for the CRAN block, `bioc::pkgname` for the Bioconductor block)
 - **Python packages** — edit `dbr-17.3-lts-requirements.txt`
 
 Then commit and push.
