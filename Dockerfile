@@ -1,5 +1,5 @@
-# 17.3-LTS rbase currently apt-installs R 4.5.3 on Ubuntu noble — newer than
-# the runtime's documented R 4.4.2 → Bioc 3.22 (matches R 4.5).
+# 17.3-LTS rbase currently apt-installs R 4.6 on Ubuntu noble — newer than
+# the runtime's documented R 4.4.2 → Bioc 3.23 (matches R 4.6).
 FROM databricksruntime/rbase:17.3-LTS
 
 USER root
@@ -16,8 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # --- Python REPL + SQL display() deps ---
 # --- Mirror DBR 17.3-LTS Python env so /databricks/python_shell/lib/dbruntime
-#     imports resolve. pyspark is excluded — it's injected at cluster launch
-#     and pinning it here would shadow the cluster's version.
+#     imports resolve.
 COPY dbr-17.3-lts-requirements.txt /tmp/dbr-17.3-lts-requirements.txt
 RUN set -eux; \
     PIP=/databricks/python3/bin/pip; \
@@ -50,7 +49,7 @@ RUN set -eux; \
 
 RUN R --no-save <<'RSCRIPT'
 options(
-  Ncpus = max(1L, parallel::detectCores() - 1L),
+  Ncpus = parallel::detectCores(),
   repos = c(CRAN = "https://packagemanager.posit.co/cran/__linux__/noble/latest")
 )
 install.packages("pak")
@@ -62,15 +61,15 @@ for (p in pkgs) {
 }
 RSCRIPT
 
-# --- Bioconductor 3.22 (matches R 4.5) ---
+# --- Bioconductor 3.23 (matches R 4.6) ---
 RUN R --no-save <<'RSCRIPT'
 options(
-  Ncpus = max(1L, parallel::detectCores() - 1L),
+  Ncpus = parallel::detectCores(),
   repos = c(CRAN = "https://packagemanager.posit.co/cran/__linux__/noble/latest"),
   BioC_mirror = "https://packagemanager.posit.co/bioconductor"
 )
 install.packages("BiocManager")
-BiocManager::install(version = "3.22", ask = FALSE, update = FALSE)
+BiocManager::install(version = "3.23", ask = FALSE, update = FALSE)
 bioc_pkgs <- c(
   "minfi", "wateRmelon",
   "sesame", "methylclock", "EpiDISH",
